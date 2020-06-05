@@ -8,11 +8,11 @@ $ python3 -m venv spotify_env
 $ source spotify_env/bin/activate
 ```
 
-Thesea are my actual credentials being stored as environment variables. Go to spotify account to check them:
+First thing to do before using spotipy is to create a spotify developer dashboard and find your client ID and client secret. Then set your redirect URI according to spotify guidelines. The one here will work just fine and won't interfere with the port running your jupyter notebook.:
 
 ```sh
-$ export SPOTIPY_CLIENT_ID='7702757ddac74f70a0a35fa98b56b494'
-$ export SPOTIPY_CLIENT_SECRET='f1964dd2a1614253bb37c395e39e645c'
+$ export SPOTIPY_CLIENT_ID=''
+$ export SPOTIPY_CLIENT_SECRET=''
 $ export SPOTIPY_REDIRECT_URI='http://example.com/callback/'
 ```
 
