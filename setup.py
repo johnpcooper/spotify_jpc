@@ -10,7 +10,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "spotiy_jpc",
+    name = "spotify_jpc",
     version = "1.0.0",
     author = "John P. Cooper",
     author_email = "jpcoope@utexas.edu",
