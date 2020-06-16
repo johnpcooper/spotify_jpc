@@ -36,4 +36,23 @@ $ sudo apt-get update
 $ sudo apt-get install python3-tk
 ```
 
-Then in order to get the tkinter root object (`Tk`), you need to install [Ximing X server for Windows](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx) explained in this [tutorial](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx). 
+Then in order to get the tkinter root object (`Tk`), you need to install [Ximing X server for Windows](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx) explained in this [tutorial](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx).
+
+## Future functionality
+
+Create database of all the artist names already in my playlists (or a more refined version of this list) and automatically scrape music blogs for new posts about them. Also could just search spotify and see if there are any new track results since last search, if so add them to playlist. 
+
+Need to make my google docs/sheets best albums etc. lists accessible. Will put them in box sync as csvs.
+
+database module would construct dictionaries (or dataframes) of playlists with:
+
+```python
+playlist_dict = {'name': "2020 June",
+                 'type': "singles",
+                 'spotify_id', 'xyz321'}
+```
+
+Create dataframe with each `playlist_dict` then `pd.concat` them to create master `playlists_df`.
+
+Should also create tracks_df for each playlist with track_id, artist, album, release date etc.
+
