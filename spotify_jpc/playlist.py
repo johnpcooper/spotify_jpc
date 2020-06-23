@@ -1,8 +1,10 @@
 import pandas as pd
 from spotify_jpc import playback, utilities, constants
 from importlib import reload
+from datetime import datetime
+import calendar
 
-def get_playlist_tracks(playlist_id='7Gr9kNeQNwapj3KYaAIhCu'):
+def get_playlist_tracks(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
     """
     Return a list of dictionaries, one for each track in the playlist 
     found using <playlist_id>.
@@ -14,8 +16,7 @@ def get_playlist_tracks(playlist_id='7Gr9kNeQNwapj3KYaAIhCu'):
                'is_local', 'name', 'popularity', 'preview_url', 'track', 'track_number',
                'type', 'uri'])
     """
-    utilities.set_env_vars()
-    sp = utilities.get_user_sp(scope='playlist-modify-private')
+    sp = kwargs.get('sp', utilities.get_user_sp(scope='playlist-modify-private'))
     results = sp.playlist(playlist_id, fields="tracks,next")
     # I'm limited to only grabbing up to 100 tracks from the playlist
     tracks = results['tracks']
@@ -36,21 +37,22 @@ def get_track_artist_ids(track_dict):
     
     return ids
 
-def make_playlist_tracks_df(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', verbose=False, **kwargs):
+def make_playlist_tracks_df(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', allkeys=False, **kwargs):
     # need to add functinality to get song release date and my add date
     # to make_playlist_tracks_df()
     keys = kwargs.get('fields', ['name', 'uri',
                                  'id', 'artist_name',
-                                 'artist_id'])
+                                 'artist_id', 'release_date'])
     tracks_list = get_playlist_tracks(playlist_id)
     columns_dict = {}
     
     track_dfs = []
     for i, track in enumerate(tracks_list):
-        # Add some custom extracted fields
+        # Add some custom extracted fields. Sometimes 
         track['artist_name'] = get_track_artist_names(track)[0]
         track['artist_id'] = get_track_artist_ids(track)[0]
-        if verbose:            
+        track['release_date'] = utilities.get_track_release_dt(track)
+        if allkeys:            
             for key in track.keys():
                 columns_dict[key] = track[key]
             try:
@@ -73,7 +75,8 @@ def make_playlists_df():
     
     utilities.set_env_vars()
     sp = utilities.get_user_sp(scope='playlist-modify-private')
-    playlists = sp.user_playlists('anothergriningsoul', limit=50)
+    username = constants.user_vars['username']
+    playlists = sp.user_playlists(username, limit=50)
     playlist_dfs = []
 
     keys = ['name',
@@ -81,11 +84,12 @@ def make_playlists_df():
             'id']
     
     for i, playlist_dict in enumerate(playlists['items']):
+        print(f"Making playlist DataFrame {i+1} of {len(playlists['items'])}", end='\r')
         columns_dict = {}
         for key in keys:
             columns_dict[key] = playlist_dict[key]
             if key == 'id':
-                tracks_df = make_playlist_tracks_df(playlist_id=playlist_dict[key])
+                tracks_df = make_playlist_tracks_df(playlist_id=playlist_dict[key], sp=sp)
                 # need to add functinality to get song release date and my add date
                 # to make_playlist_tracks_df()
                 for col in tracks_df.columns:
@@ -97,3 +101,108 @@ def make_playlists_df():
     playlists_df = pd.concat(playlist_dfs)
     
     return playlists_df
+
+def make_playlists_db():
+    
+    utilities.set_env_vars()
+    sp = utilities.get_user_sp(scope='playlist-modify-private')
+    username = constants.user_vars['username']
+    playlists = sp.user_playlists(username, limit=50)
+    playlist_dfs = []
+
+    keys = ['name',
+            'uri',
+            'id']
+    
+    for i, playlist_dict in enumerate(playlists['items']):
+        columns_dict = {}
+        for key in keys:
+            columns_dict[key] = playlist_dict[key]                    
+        playlist_df = pd.DataFrame(columns_dict, index=[i])
+        playlist_dfs.append(playlist_df)
+
+    playlists_df = pd.concat(playlist_dfs)
+    
+    return playlists_df
+
+def database():
+    """
+    Return the dataframe containing a database
+    of playlists in the user's library
+
+    If no file found at path, return None
+    """
+    path = constants.user_vars['playlist_db_path']
+    try:
+        db = pd.read_csv(path)
+    except:
+        db = None
+    return db
+
+def update_database():
+    """
+    Refresh the playlist database .csv. 
+    Check spotify_jpc.constants.user_vars['playlist_db_path'] and make sure
+    there is an existing .csv at that path
+    """
+    path = constants.user_vars['playlist_db_path']
+    new_db = make_playlists_db()
+    old_db = database()
+    # Check if there's a .csv at the path. If not,
+    # just create an empty one with the same cols
+    # as the new database
+    try:   
+        # Get information for playlists in the new
+        # database that aren't already in the pre-existing one
+        new_db = new_db[~new_db.id.isin(old_db.id)]
+        final_db = pd.concat([old_db, new_db], ignore_index=True)
+        # Save the updated database
+        final_db.to_csv(path, index=False)
+    except:        
+        old_db = pd.DataFrame(columns=new_db.columns)
+
+def add_track_to_playlist(track, playlist_name, **kwargs):
+    """
+    Look up the playlist id corresponding to palylist_name
+    in the dataframe returned by database()
+    """
+
+    db = database()
+    sp = kwargs.get('sp', utilities.get_user_sp('playlist-modify-public'))
+    user = constants.user_vars['username']
+    assert playlist_name in db.name.values, "playlist name not recored in playlist.database()"
+    
+    playlist_id = db.set_index('name').loc[playlist_name, 'id']
+    track_ids = [track['id']]
+
+    sp.user_playlist_add_tracks(user, playlist_id, tracks=track_ids, position=None)
+
+def add_single_to_playlist(track, **kwargs):
+
+    date = track['album']['release_date']
+    date = datetime.fromisoformat(date)
+    year = date.year
+    month = calendar.month_name[date.month]
+    name = f'{year} {month}'
+
+    try:
+        add_track_to_playlist(track, name)
+    except:
+        print(f"Couldn't find playlist with name {name}")
+
+
+def add_current_track_to_playlist(ask_name=False, **kwargs):
+
+    db = database()
+    track = playback.get_current_track()
+
+    if ask_name:
+        name = input("Enter name of target playlist> ")
+        while name not in db.name.values:
+            name = input(f"No playlist with name {name}, try again> ")
+        add_track_to_playlist(track, name)
+
+    # Otherwise, add track to the singles playlists for 
+    # that song's release month
+    else:
+        add_single_to_playlist(track)
