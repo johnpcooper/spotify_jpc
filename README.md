@@ -1,35 +1,43 @@
-# Notes on using spotipy
+# spotify_jpc
 
-It is important to develop in linux on this project, because setting environment variables is much easier in bash. To get started:
+This project is developed in the Windows subsystem for Linux, so there are some quirks specific to the WSL in these docs. Making it work in Windows is straightforward.
 
-```bash
-$ cd /home
-$ python3 -m venv spotify_env
-$ source spotify_env/bin/activate
-```
-
-First thing to do before using spotipy is to create a spotify developer dashboard and find your client ID and client secret. Then set your redirect URI according to spotify guidelines. The one here will work just fine and won't interfere with the port running your jupyter notebook.:
+## Windows installation
 
 ```sh
-$ export SPOTIPY_CLIENT_ID=''
-$ export SPOTIPY_CLIENT_SECRET=''
-$ export SPOTIPY_REDIRECT_URI='http://example.com/callback/'
+cd C:\
+pip install virtualenv
+# Create a virtual environment in which to install the package. You could also
+# just install it outside of a venv, but you'll need to update the ahk scripts 
+# accordingly
+python -m venv .spotify
+.spotify\Scripts\activate
+git clone https://github.com/johnpcooper/spotify_jpc
+cd spotify_jpc
+pip install -r requirements.txt
+# Install the package in .spotify venv
+python setup.py install
 ```
 
-The above functionality is now implemened in utlities.py as bart of this project. Upon running anything with spotify_jpc or spotipy, always start with:
+## Configure constants.py
+
+Before using the package and the one its built around (spotipy), you need to get credentials configured with spotify and add them to `spotify_jpc\constants.py`. Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications). Get your client ID and client secret and set up a redirect URI. I recommend using the one that's already in `spotify_jpc/constants_example.py`. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
 
 ```python
-from importlib import reload
-from spotify_jpc import utilities
-reload(utilities)
-utilities.set_env_vars()
+env_vars = {'SPOTIPY_CLIENT_ID': '770adfb757ddac74f730a65fa6b56b496',
+            'SPOTIPY_CLIENT_SECRET': 'f1964dd3424bb37c395e39e645c',
+            'SPOTIPY_REDIRECT_URI': 'http://localhost:9090',
+            'DISPLAY': ':0'}
+
+user_vars = {'username': 'anothergriningsoul',
+             'playlist_db_path': r"C:\spotify_jpc\notebooks\playlist_db.csv"}
 ```
 
-I think a better practice would be to put this in the .bashrc script, but I want it to be specific to this environment and don't know how to do that.
+Once all the above is complete, the tkinter shortcuts should work in windows.
 
 ## Running Tkinter in the windows subsystem for linux
 
-It's crazy how annoying this was to make happen, but I wanted it for a more universal form of OS clipboard access. You must install tkinter with the following:
+It was pretty annoying to make tkinter work in the WSL, but I wanted it for a more universal form of OS clipboard access. You must install tkinter with the following:
 
 ```sh
 $ sudo apt-get update
