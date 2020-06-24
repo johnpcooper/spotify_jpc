@@ -6,22 +6,11 @@ This project is developed in the Windows subsystem for Linux, so there are some 
 
 ```sh
 cd C:\
-pip install virtualenv
-# Create a virtual environment in which to install the package. You could also
-# just install it outside of a venv, but you'll need to update the ahk scripts 
-# accordingly
-python -m venv .spotify
-.spotify\Scripts\activate
 git clone https://github.com/johnpcooper/spotify_jpc
 cd spotify_jpc
-pip install -r requirements.txt
-# Install the package in .spotify venv
-python setup.py install
 ```
 
-## Configure constants.py
-
-Before using the package and the one its built around (spotipy), you need to get credentials configured with spotify and add them to `spotify_jpc\constants.py`. Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications). Get your client ID and client secret and set up a redirect URI. I recommend using the one that's already in `spotify_jpc/constants_example.py`. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
+Before installing the package, you need to get credentials configured with spotify and add them to `spotify_jpc\constants.py`. Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications). Get your client ID and client secret and set up a redirect URI. I recommend using the one that's already in `spotify_jpc/constants_example.py`. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
 
 ```python
 env_vars = {'SPOTIPY_CLIENT_ID': '770adfb757ddac74f730a65fa6b56b496',
@@ -33,7 +22,21 @@ user_vars = {'username': 'anothergriningsoul',
              'playlist_db_path': r"C:\spotify_jpc\notebooks\playlist_db.csv"}
 ```
 
-Once all the above is complete, the tkinter shortcuts should work in windows.
+Now that `constants.py` is properly configured, you can install `spotify_jpc` and the use the .ahk shortcuts.
+
+```sh
+pip install virtualenv
+# Create a virtual environment in which to install the package. You could also
+# just install it outside of a venv, but you'll need to update the ahk scripts 
+# accordingly
+cd C:\
+python -m venv .spotify
+.spotify\Scripts\activate
+cd spotify_jpc
+pip install -r requirements.txt
+# Install the package in .spotify venv
+python setup.py install
+```
 
 ## Running Tkinter in the windows subsystem for linux
 
