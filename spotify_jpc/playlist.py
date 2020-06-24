@@ -3,6 +3,25 @@ from spotify_jpc import playback, utilities, constants
 from importlib import reload
 from datetime import datetime
 import calendar
+from textwrap import dedent
+
+def get_playlist(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
+    """
+    Return playlist (a dictionary). playlist_id can be looked up by name
+    in in the DataFrame returned by playlist.database()
+
+    This function does instantiate a user spotipy object (utilities.get_user_sp())
+    """
+    sp = kwargs.get('sp', utilities.get_user_sp(scope='playlist-modify-private'))
+    try:
+        playlist = sp.playlist(playlist_id, fields="tracks,next")
+    except Exception as e:
+        playlist = None
+        print(f"Couldn't find playlist with id: {playlist_id}\nSpotipy error:\n{e}")
+        print(f'You can look up playlist ids in playlist.database()')
+    
+    return playlist
+
 
 def get_playlist_tracks(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
     """
@@ -16,8 +35,7 @@ def get_playlist_tracks(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
                'is_local', 'name', 'popularity', 'preview_url', 'track', 'track_number',
                'type', 'uri'])
     """
-    sp = kwargs.get('sp', utilities.get_user_sp(scope='playlist-modify-private'))
-    results = sp.playlist(playlist_id, fields="tracks,next")
+    results = get_playlist(playlist_id)
     # I'm limited to only grabbing up to 100 tracks from the playlist
     tracks = results['tracks']
     tracks_list = [tracks['items'][i]['track'] for i in range(len(tracks['items']))]
@@ -104,7 +122,6 @@ def make_playlists_df():
 
 def make_playlists_db():
     
-    utilities.set_env_vars()
     sp = utilities.get_user_sp(scope='playlist-modify-private')
     username = constants.user_vars['username']
     playlists = sp.user_playlists(username, limit=50)
@@ -125,18 +142,29 @@ def make_playlists_db():
     
     return playlists_df
 
-def database():
+def database(**kwargs):
     """
     Return the dataframe containing a database
     of playlists in the user's library
 
     If no file found at path, return None
     """
-    path = constants.user_vars['playlist_db_path']
+    path = kwargs.get('path', constants.user_vars['playlist_db_path'])
     try:
         db = pd.read_csv(path)
-    except:
+    except FileNotFoundError:
         db = None
+        print(f'No file at path: {path}')
+        if kwargs.get('path') == None:
+            print(dedent("""\
+                   Either create a refreshed database using playlist.update_database()
+                   or update the value of constants.user_vars['playlist_db_path']
+                   """))
+        else:
+            print(dedent("""\
+                   Pass an existing path keyword argument
+                   """))
+        
     return db
 
 def update_database():
@@ -160,13 +188,27 @@ def update_database():
         final_db.to_csv(path, index=False)
     except:        
         old_db = pd.DataFrame(columns=new_db.columns)
+        old_db.to_csv(path, index=False)
+
+def get_playlist_by_name(playlist_name='2020 June'):
+    """
+    Look up playlist_name in playlist.database() to get id.
+    Get playlist with playlist.get_playlist(id)
+    
+    get_playlist() returns None if no playlist found
+    """
+    db = database()
+    assert playlist_name in db.name.values, "'{playlist_name}' not recorded in playlist.database()"
+    playlist_id = db.set_index('name').loc[playlist_name, 'id']
+    playlist = get_playlist(playlist_id=playlist_id)
+    
+    return playlist
 
 def add_track_to_playlist(track, playlist_name, **kwargs):
     """
     Look up the playlist id corresponding to palylist_name
     in the dataframe returned by database()
     """
-
     db = database()
     sp = kwargs.get('sp', utilities.get_user_sp('playlist-modify-public'))
     user = constants.user_vars['username']
