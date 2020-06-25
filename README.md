@@ -12,22 +12,31 @@ cd spotify_jpc
 
 Before installing the package, you need to get credentials configured with spotify and add them to `spotify_jpc\constants.py`. Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications). Get your client ID and client secret and set up a redirect URI. I recommend using the one that's already in `spotify_jpc/constants_example.py`. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
 
-```python
-env_vars = {'SPOTIPY_CLIENT_ID': '770adfb757ddac74f730a65fa6b56b496',
-            'SPOTIPY_CLIENT_SECRET': 'f1964dd3424bb37c395e39e645c',
+```python  
+env_vars = {'SPOTIPY_CLIENT_ID': 'your-spotify-client-id',
+            'SPOTIPY_CLIENT_SECRET': 'your-spotify-client-secret',
             'SPOTIPY_REDIRECT_URI': 'http://localhost:9090',
             'DISPLAY': ':0'}
 
-user_vars = {'username': 'anothergriningsoul',
-             'playlist_db_path': r"C:\spotify_jpc\notebooks\playlist_db.csv"}
+scope_list = ['user-modify-playback-state',
+              'user-read-recently-played',
+              'user-read-currently-playing',
+              'playlist-modify-private',
+              'playlist-modify-public']
+              
+scope = " ".join(scope_list)
+
+user_vars = {'username': 'your-username',
+             'playlist_db_path': r"C:\spotify_jpc\notebooks\playlist_db.csv",
+			 'cache_path': r"C:\.spotify\.usercache"}
 ```
 
-Now that `constants.py` is properly configured, you can install `spotify_jpc` and the use the .ahk shortcuts.
+Now that `constants.py` is properly configured, you can install `spotify_jpc` and then use the .ahk shortcuts.
 
 ```sh
 pip install virtualenv
 # Create a virtual environment in which to install the package. You could also
-# just install it outside of a venv, but you'll need to update the ahk scripts 
+# just install it outside of a venv, but you'll need to update the ahk scripts
 # accordingly
 cd C:\
 python -m venv .spotify
