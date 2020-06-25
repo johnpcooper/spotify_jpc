@@ -5,7 +5,7 @@ def play_clipboard(**kwargs):
     Search spotify for whatever's on the clipboard and
     play the first resulting track
     """
-    sp = kwargs.get('sp', get_user_sp('user-modify-playback-state'))
+    sp = kwargs.get('sp', get_user_sp())
     track_uri = get_clipboard_uri()
     
     if track_uri:
@@ -18,6 +18,6 @@ def get_current_track(**kwargs):
     """
     Return the currently playing track (a dictionary)
     """
-    sp = get_user_sp(scope='user-read-currently-playing')
+    sp = get_user_sp()
     track = sp.current_user_playing_track()
     return track['item']

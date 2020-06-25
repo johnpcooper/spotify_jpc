@@ -12,7 +12,7 @@ def get_playlist(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
 
     This function does instantiate a user spotipy object (utilities.get_user_sp())
     """
-    sp = kwargs.get('sp', utilities.get_user_sp(scope='playlist-modify-private'))
+    sp = kwargs.get('sp', utilities.get_user_sp())
     try:
         playlist = sp.playlist(playlist_id, fields="tracks,next")
     except Exception as e:
@@ -92,7 +92,7 @@ def make_playlist_tracks_df(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', allkeys=False,
 def make_playlists_df():
     
     utilities.set_env_vars()
-    sp = utilities.get_user_sp(scope='playlist-modify-private')
+    sp = utilities.get_user_sp()
     username = constants.user_vars['username']
     playlists = sp.user_playlists(username, limit=50)
     playlist_dfs = []
@@ -122,7 +122,7 @@ def make_playlists_df():
 
 def make_playlists_db():
     
-    sp = utilities.get_user_sp(scope='playlist-modify-private')
+    sp = utilities.get_user_sp()
     username = constants.user_vars['username']
     playlists = sp.user_playlists(username, limit=50)
     playlist_dfs = []
@@ -210,7 +210,7 @@ def add_track_to_playlist(track, playlist_name, **kwargs):
     in the dataframe returned by database()
     """
     db = database()
-    sp = kwargs.get('sp', utilities.get_user_sp('playlist-modify-public'))
+    sp = kwargs.get('sp', utilities.get_user_sp())
     user = constants.user_vars['username']
     assert playlist_name in db.name.values, "playlist name not recored in playlist.database()"
     

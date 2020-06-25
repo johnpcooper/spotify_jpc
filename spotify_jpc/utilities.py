@@ -3,6 +3,7 @@ from tkinter import Tk
 import spotipy
 from spotipy import util
 from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy import oauth2
 from spotify_jpc import constants
 
 def set_env_vars():
@@ -10,7 +11,7 @@ def set_env_vars():
     for key, value in constants.env_vars.items():
         os.environ[key] = value
 
-def get_user_sp(scope='user-modify-playback-state', **kwargs):
+def get_user_sp(**kwargs):
     """
     Instantiate and return a spotipy.Spotify object using my
     credentials from spotify_jpc.constants by default
@@ -18,10 +19,19 @@ def get_user_sp(scope='user-modify-playback-state', **kwargs):
     scope is set to 'user-
     """
     set_env_vars()
+    scope = kwargs.get('scope', constants.scope)
+    cache_path = kwargs.get('cache_path', constants.user_vars['cache_path'])
     username = kwargs.get('username', constants.user_vars['username'])
-    token = util.prompt_for_user_token(username=username, scope=scope)
-    sp = spotipy.Spotify(auth=token)
+    # Look for a chached token in the path specified in constants.user_vars
+    # If None, prompt the user to authenticate
+    sp_oauth = oauth2.SpotifyOAuth(scope=scope,cache_path=cache_path)
+    token_info = sp_oauth.get_cached_token()
+    if token_info == None:
+        token = util.prompt_for_user_token(scope=scope, cache_path=cache_path, username=username)
+    else:
+        token = token_info['access_token']
 
+    sp = spotipy.Spotify(auth=token)
     return sp
 
 def get_client_sp(**kwargs):
@@ -79,8 +89,7 @@ def get_clipboard_uri(**kwargs):
     return the uri of the first track in search results.
 
     If no results, return None
-    """    
-    set_env_vars()
+    """
     sp = get_client_sp()
     query = get_clipboard()
     results = sp.search(q=query, type='track')
