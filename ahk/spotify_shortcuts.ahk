@@ -7,7 +7,7 @@
 ; This way, I can just script like in Ipython in working environment
 ^!1::
 
-  env = C:\.main_env\Scripts\activate
+  env = C:\.spotify\Scripts\activate
   pycommand := "from spotify_jpc import playback; playback.play_clipboard()"
   run, %comspec% /c %env% & python -c "%pycommand%"
 
@@ -17,7 +17,7 @@ return
 ; corresponding to its release date
 ^!2::
 
-  env = C:\.main_env\Scripts\activate
+  env = C:\.spotify\Scripts\activate
   pycommand := "from spotify_jpc.playlist import add_current_track_to_playlist; add_current_track_to_playlist()"
   run, %comspec% /c %env% & python -c "%pycommand%"
 
