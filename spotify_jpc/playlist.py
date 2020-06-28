@@ -5,6 +5,31 @@ from datetime import datetime
 import calendar
 from textwrap import dedent
 
+def database(**kwargs):
+    """
+    Return the dataframe containing a database
+    of playlists in the user's library
+
+    If no file found at path, return None
+    """
+    path = kwargs.get('path', constants.user_vars['playlist_db_path'])
+    try:
+        db = pd.read_csv(path)
+    except FileNotFoundError:
+        db = None
+        print(f'No file at path: {path}')
+        if kwargs.get('path') == None:
+            print(dedent("""\
+                   Either create a refreshed database using playlist.update_database()
+                   or update the value of constants.user_vars['playlist_db_path']
+                   """))
+        else:
+            print(dedent("""\
+                   Pass an existing path keyword argument
+                   """))
+        
+    return db
+
 def get_playlist(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
     """
     Return playlist (a dictionary). playlist_id can be looked up by name
@@ -89,20 +114,32 @@ def make_playlist_tracks_df(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', allkeys=False,
     
     return tracks_df
 
+def get_playlists_from_db():
+    """
+    Return a list of playlist objects returned by sp.playlist(<playlist_id>)
+    for each playlist_id in playlist.database()
+    """
+    sp = utilities.get_user_sp()
+    db = database()
+    playlist_ids = db.id
+    playlists = [sp.playlist(plid) for plid in playlist_ids]
+    print(f"Found {len(playlists)} playlists")
+    
+    return playlists
+
 def make_playlists_df():
     
-    utilities.set_env_vars()
     sp = utilities.get_user_sp()
     username = constants.user_vars['username']
-    playlists = sp.user_playlists(username, limit=50)
+    playlists = get_playlists_from_db()
     playlist_dfs = []
 
     keys = ['name',
             'uri',
             'id']
     
-    for i, playlist_dict in enumerate(playlists['items']):
-        print(f"Making playlist DataFrame {i+1} of {len(playlists['items'])}", end='\r')
+    for i, playlist_dict in enumerate(playlists):
+        print(f"Making playlist DataFrame {i+1} of {len(playlists)}", end='\r')
         columns_dict = {}
         for key in keys:
             columns_dict[key] = playlist_dict[key]
@@ -141,31 +178,6 @@ def make_playlists_db():
     playlists_df = pd.concat(playlist_dfs)
     
     return playlists_df
-
-def database(**kwargs):
-    """
-    Return the dataframe containing a database
-    of playlists in the user's library
-
-    If no file found at path, return None
-    """
-    path = kwargs.get('path', constants.user_vars['playlist_db_path'])
-    try:
-        db = pd.read_csv(path)
-    except FileNotFoundError:
-        db = None
-        print(f'No file at path: {path}')
-        if kwargs.get('path') == None:
-            print(dedent("""\
-                   Either create a refreshed database using playlist.update_database()
-                   or update the value of constants.user_vars['playlist_db_path']
-                   """))
-        else:
-            print(dedent("""\
-                   Pass an existing path keyword argument
-                   """))
-        
-    return db
 
 def update_database():
     """
