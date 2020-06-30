@@ -21,7 +21,8 @@ def database(**kwargs):
         if kwargs.get('path') == None:
             print(dedent("""\
                    Either create a refreshed database using playlist.update_database()
-                   or update the value of constants.user_vars['playlist_db_path']
+                   or update the value of constants.user_vars['playlist_db_path'] to refer to
+                   a file that exists
                    """))
         else:
             print(dedent("""\
@@ -29,6 +30,31 @@ def database(**kwargs):
                    """))
         
     return db
+
+def dataframe(**kwargs):
+    """
+    Return the dataframe of user playlists where each row 
+    is a track, include release date, first artist name, etc.
+
+    If no file found at path, return None
+    """
+    path = kwargs.get('path', constants.user_vars['playlist_df_path'])
+    try:
+        df = pd.read_csv(path)
+    except FileNotFoundError:
+        df = None
+        print(f'No file at path: {path}')
+        if kwargs.get('path') == None:
+            print(dedent("""\
+                   Create a refreshed dataframe using playlist.make_playlists_df()
+                   which will save the outputt at constants.user_vars['playlist_df_path']
+                   """))
+        else:
+            print(dedent("""\
+                   Pass an existing path keyword argument
+                   """))
+        
+    return df
 
 def get_playlist(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', **kwargs):
     """
@@ -154,6 +180,7 @@ def make_playlists_df():
         playlist_dfs.append(playlist_df)
 
     playlists_df = pd.concat(playlist_dfs)
+    playlists_df.to_csv(constants.user_vars['playlist_df_path'], index=False)
     
     return playlists_df
 
