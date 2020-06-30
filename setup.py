@@ -19,6 +19,8 @@ setup(
     keywords = "spotify ahk organization",
     url = "https://github.com/johnpcooper/spotify_jpc",
     packages=find_packages(),
+    package_data={'spotify_jpc': ['*.csv']},
+    include_package_data=True,
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",
