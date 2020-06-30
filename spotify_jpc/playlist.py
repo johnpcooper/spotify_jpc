@@ -302,7 +302,7 @@ def add_single_to_playlist(track, **kwargs):
     # playlist with playlist.new_playlist() and add track
     # to the new playlist
     except:
-        new_playlist(name)
+        new_playlist(name=name)
         add_track_to_playlist(track, name)
 
 def add_current_track_to_playlist(ask_name=False, **kwargs):
