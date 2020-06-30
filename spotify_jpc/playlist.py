@@ -243,6 +243,31 @@ def get_playlist_by_name(playlist_name='2020 June'):
     
     return playlist
 
+def new_playlist(**kwargs):
+    """
+    Create an empty playlist and add it to playlist.database()
+    using playlist.update_database(). If playlist_name is already
+    in the database, warn the user and don't make a new playlist.
+    
+    Return nothing
+    """
+    username = kwargs.get('username', constants.user_vars['username'])
+    now = datetime.now()
+    name = kwargs.get('name', f'Playlist {now.year}{now.month}{now.day}')
+    public = kwargs.get('public', False)
+    sp = utilities.get_user_sp()
+    db = database()    
+    # The playlist will have been create at the top
+    # of playlist organization, so update_datebase()
+    # will find it and add it to the database
+    if name in db.name.values:
+        print(f'Playlist already exists with name: {name}')
+    else:
+        # user_playlist_create() returns the playlist dict 
+        # object
+        new_pl = sp.user_playlist_create(username, name, public)
+        update_database()
+
 def add_track_to_playlist(track, playlist_name, **kwargs):
     """
     Look up the playlist id corresponding to palylist_name
@@ -251,6 +276,9 @@ def add_track_to_playlist(track, playlist_name, **kwargs):
     db = database()
     sp = kwargs.get('sp', utilities.get_user_sp())
     user = constants.user_vars['username']
+    # Need to update so that if playlist_name not in db.name.values,
+    # create a new playlist with that track using playlist.new_playlist()
+    # which will add the new playlist's information to playlist.database(). 
     assert playlist_name in db.name.values, "playlist name not recored in playlist.database()"
     
     playlist_id = db.set_index('name').loc[playlist_name, 'id']
@@ -266,11 +294,16 @@ def add_single_to_playlist(track, **kwargs):
     month = calendar.month_name[date.month]
     name = f'{year} {month}'
 
+    # Works if there's an existing singles playlist
+    # for this track in playlist.database()
     try:
         add_track_to_playlist(track, name)
+    # If no existing playlist, just create a new monthly
+    # playlist with playlist.new_playlist() and add track
+    # to the new playlist
     except:
-        print(f"Couldn't find playlist with name {name}")
-
+        new_playlist(name)
+        add_track_to_playlist(track, name)
 
 def add_current_track_to_playlist(ask_name=False, **kwargs):
 
