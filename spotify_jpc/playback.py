@@ -46,7 +46,7 @@ def seek_rev(increment_s=30):
     sp.seek_track(target_ms)
     print(f"Seeked to {target_ms}")
 
- def add_clipboard_to_queue():
+def add_clipboard_to_queue():
     """
     Search spotify for the string on the clipboard
     and add the first track result to queue
