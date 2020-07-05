@@ -21,3 +21,38 @@ def get_current_track(**kwargs):
     sp = get_user_sp()
     track = sp.current_user_playing_track()
     return track['item']
+
+def seek_for(increment_s=15):
+    """
+    Seek the currently playing track to current track
+    progress in ms + 15 seconds (s)
+    """
+    increment_ms = increment_s*1000
+    sp = get_user_sp()
+    current_track = sp.current_playback()
+    current_prog_ms = current_track['progress_ms']
+    sp.seek_track(current_prog_ms + increment_ms)
+
+def seek_rev(increment_s=30):
+    """
+    Seek the currently playing track to current track
+    progress in ms - 30 seconds (s)
+    """
+    increment_ms = increment_s*1000
+    sp = get_user_sp()
+    current_track = sp.current_playback()
+    current_prog_ms = current_track['progress_ms']
+    target_ms = current_prog_ms - increment_ms
+    sp.seek_track(target_ms)
+    print(f"Seeked to {target_ms}")
+
+ def add_clipboard_to_queue():
+    """
+    Search spotify for the string on the clipboard
+    and add the first track result to queue
+    """
+    sp = get_user_sp()
+    track = get_clipboard_uri()
+    clipboard_uri = get_clipboard_uri()
+    sp.add_clipboard_to_queue(clipboard_uri)
+    print(f"Added song with uri '{clipboard_uri}' to queue")
