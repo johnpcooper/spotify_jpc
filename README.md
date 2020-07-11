@@ -10,9 +10,14 @@ git clone https://github.com/johnpcooper/spotify_jpc
 cd spotify_jpc
 ```
 
-Before installing the package, you need to get credentials configured with spotify and add them to `spotify_jpc\constants.py`. Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications). Get your client ID and client secret and set up a redirect URI. I recommend using the one that's already in `spotify_jpc/constants_example.py`. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
+Before installing the package, you need to get credentials configured with spotify and add them to `spotify_jpc\constants.py`:
 
-```python  
+1.  Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications).
+2. Get your client ID and client secret from the dashboard page
+3. set up a redirect URI in dashboard page > edit settings. I recommend using the one that's already in `spotify_jpc/constants_example.py`
+4. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
+
+```python
 env_vars = {'SPOTIPY_CLIENT_ID': 'your-spotify-client-id',
             'SPOTIPY_CLIENT_SECRET': 'your-spotify-client-secret',
             'SPOTIPY_REDIRECT_URI': 'http://localhost:9090',
@@ -31,13 +36,12 @@ user_vars = {'username': 'your-username',
 			 'cache_path': r"C:\.spotify\.usercache"}
 ```
 
-Now that `constants.py` is properly configured, you can install `spotify_jpc` and then use the .ahk shortcuts.
+Now that `constants.py` is properly configured, you can install `spotify_jpc` and then use .ahk shortcuts:
 
 ```sh
 pip install virtualenv
 # Create a virtual environment in which to install the package. You could also
-# just install it outside of a venv, but you'll need to update the ahk scripts
-# accordingly
+# just install it outside of a venv, but you'll need to remove the environment activation part of the ahk functions
 cd C:\
 python -m venv .spotify
 .spotify\Scripts\activate
@@ -49,7 +53,7 @@ python setup.py install
 
 ## Running Tkinter in the windows subsystem for linux
 
-It was pretty annoying to make tkinter work in the WSL, but I wanted it for a more universal form of OS clipboard access. You must install tkinter with the following:
+It was pretty annoying to make tkinter work in the WSL, but I wanted tkinter for a more universal form of OS clipboard access. You must install tkinter with the following:
 
 ```sh
 $ sudo apt-get update
@@ -60,19 +64,6 @@ Then in order to get the tkinter root object (`Tk`), you need to install [Ximing
 
 ## Future functionality
 
-Create database of all the artist names already in my playlists (or a more refined version of this list) and automatically scrape music blogs for new posts about them. Also could just search spotify and see if there are any new track results since last search, if so add them to playlist. 
+Need to make a function (`playlist.new_playlist`), which creates a playlist then adds it to `playlist.database()`. Then, if I only ever create new playlists with this function, I won't have to use `playlist.update_database(`) anymore.
 
-Need to make my google docs/sheets best albums etc. lists accessible. Will put them in box sync as csvs.
-
-database module would construct dictionaries (or dataframes) of playlists with:
-
-```python
-playlist_dict = {'name': "2020 June",
-                 'type': "singles",
-                 'spotify_id', 'xyz321'}
-```
-
-Create dataframe with each `playlist_dict` then `pd.concat` them to create master `playlists_df`.
-
-Should also create tracks_df for each playlist with track_id, artist, album, release date etc.
-
+Update `playlist.add_track_to_playlist()` so that it always checks for duplicate track in the playlist and asks for confirmation if the track is already there.

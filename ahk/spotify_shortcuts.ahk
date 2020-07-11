@@ -13,12 +13,39 @@
 
 return
 
-; Add currently playing track to the singles playlist
-; corresponding to its release date
+; Add first track in search results for cliboard to
+; queue. 
 ^!2::
 
   env = C:\.spotify\Scripts\activate
+  pycommand := "from spotify_jpc.playback import add_clipboard_to_queue; add_clipboard_to_queue()"
+  run, %comspec% /c %env% & python -c "%pycommand%"
+
+return
+
+; Add currently playing track to the singles playlist
+; corresponding to its release date
+^!3::
+
+  env = C:\.spotify\Scripts\activate
   pycommand := "from spotify_jpc.playlist import add_current_track_to_playlist; add_current_track_to_playlist()"
+  run, %comspec% /c %env% & python -c "%pycommand%"
+
+return
+
+; Seeking forward and reverse
+!+]::
+
+  env = C:\.spotify\Scripts\activate
+  pycommand := "from spotify_jpc.playback import seek_for; seek_for()"
+  run, %comspec% /c %env% & python -c "%pycommand%"
+
+return
+
+!+[::
+
+  env = C:\.spotify\Scripts\activate
+  pycommand := "from spotify_jpc.playback import seek_rev; seek_rev()"
   run, %comspec% /c %env% & python -c "%pycommand%"
 
 return

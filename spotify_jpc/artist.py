@@ -78,16 +78,19 @@ def singles_df(**kwargs):
     # Get objects from spotify_jpc
     pldf = playlist.dataframe()
     pldb = playlist.database()
-    sp = utilities.get_user_sp()
+    sp = kwargs.get('sp', utilities.get_user_sp())
     # Parse keyword args
     artist_name = kwargs.get('artist_name', None)
-    if artist_name not in pldf.track_artist_name.values:
-        print("Must pass an artist name that exists in playlist.dataframe().track_artist_name")
-        return None
-    else:
-        pass
+    artist_id = kwargs.get('artist_id', None)
 
     if artist_name != None:
+
+        if artist_name not in pldf.track_artist_name.values:
+            print("Must pass an artist name that exists in playlist.dataframe().track_artist_name")
+            return None
+        else:
+            pass
+
         artist_slice = pldf.set_index('track_artist_name', drop=False).loc[artist_name, :]
         try:
             # Works if there are multiple appearances of this artist 
@@ -100,7 +103,7 @@ def singles_df(**kwargs):
     else:
         artist_id = kwargs.get('artist_id', pldf.track_artist_id[0])
         artist_slice = pldf.set_index('track_artist_id', drop=False).loc[artist_id, :]
-        artist_name = artist_slice[artist_slice.artist_id == artist_id].unique()[0]
+        artist_name = artist_slice.track_artist_name[0]
     try:
         albums = sp.artist_albums(artist_id, album_type='single')['items']
     except:
@@ -130,7 +133,9 @@ def singles_df(**kwargs):
         df.loc[i, 'release_date'] = release_date
         df.loc[i, 'album_uri'] = album_uri
         
+    print(f'Compiled singles DataFrame for {artist_name}')
     singles_df = drop_clean_and_dup_tracks(df)
+
     return singles_df
 
 def all_artists_singles_df(save_file=False, **kwargs):
