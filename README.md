@@ -71,10 +71,10 @@ Then in order to get the tkinter root object (`Tk`), you need to install [Ximing
 
 ## Raspberry pi tasks
 
-I use my raspberry pi to run `database.update_track_history()` every 5 minutes using cron:
+I use my raspberry pi to run `database.update_track_history()` every 5 minutes with `cron`:
 
 ```sh
-# bash command to edit your sudo cron tasks
+# bash command to edit your sudo crontab tasks
 sudo crontab -e
 # Add the following commands to the end of the file
 # First, update track history at reboot. Note that
@@ -86,12 +86,22 @@ sudo crontab -e
 */5 * * * * ~/venv/.spotify/bin/python -c "from spotify_jpc.database import updated_track_history; update_track_history()"
 ```
 
-This writes track history ` to `<spotify_installation_path>/track_history_df.json
+This writes last 50 tracks of playback history to `<spotify_installation_path>/track_history_df.json`
 
-For now, I use `scp` to manually transfer the updated copy of `track_history_df.json` to the location of my main `spotify_jpc` branch in my WSL. Aliased in `~/.bashrc`:
+I also use `scp` to automatically transfer the updated copy of `track_history_df.json` to the location of my main `spotify_jpc` branch in my WSL. First, the bash script for copying the file located at `/home/pi/scripts/update_sp_data.sh`:
 
 ```sh
-alias udspd="scp ~/venv/.spotify/lib/python3.7/site-packages/spotify_jpc/track_history_df.json user@My-PC:~/projects/spotify_jpc/spotify_jpc"
+# Direct path to scp + <spotify_jpc_installation_path>/track_history_df.json
+# + destination on my WSL
+/usr/bin/scp /home/pi/venv/.spotify/lib/python3.7/site-packages/spotify_jpc/track_history_df.json <username>@<computer_name>:/home/johnpcooper/projects/spotify_jpc/spotify_jpc
 ```
 
-I might do this with `cron` as well, but for now requires password.
+And then the `cron` command that runs the bash script every 5 minutes:
+
+```sh
+# Important that you put this command is the user crontab.
+# Your ssh key won't be available in the root environment
+crontab -e # open the crontab file
+# Put this line at the end
+*/5 * * * * /bin/bash /home/pi/scripts/update_sp_data.sh
+```
