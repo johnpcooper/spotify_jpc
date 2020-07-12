@@ -44,6 +44,20 @@ def seek_rev(increment_s=15):
     current_prog_ms = current_track['progress_ms']
     target_ms = current_prog_ms - increment_ms
     sp.seek_track(target_ms)
+
+def pseudoskip(fraction=0.001):
+    """
+    Navigate to the very last 0.1 % of currently
+    playing track. If you do this instead of 
+    skipping the track, it makes it into recently
+    played.
+    """
+    sp = utilities.get_user_sp()
+    current_track = sp.current_playback()
+    duration_ms = current_track['item']['duration_ms']
+    target_ms = duration_ms - round(duration_ms*fraction)
+    sp.seek_track(target_ms)
+
 def add_clipboard_to_queue():
     """
     Search spotify for the string on the clipboard
