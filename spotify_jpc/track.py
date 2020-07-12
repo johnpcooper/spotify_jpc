@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from dateutil.parser import parse
 
 import pandas as pd
+import numpy as np
 
 from spotify_jpc import utilities, playlist
 
@@ -51,6 +52,9 @@ def recently_played(**kwargs):
         played_at = item['played_at']
         played_at_dt = parse(played_at)
         played_at_central_dt = played_at_dt - timedelta(hours=5)
+        # Get rid of timezone awareness because it
+        # simplifies things downstream
+        played_at_central_dt = played_at_central_dt.replace(tzinfo=None)
         track = item['track']
         track['played_at'] = played_at_central_dt
         
@@ -66,6 +70,8 @@ def tracks_df(**kwargs):
 
     Recently played df inlcudes datetime obj of when song
     was played in central timezone.
+
+    At some point
     """
     track_dicts = kwargs.get('track_dicts', recently_played())
     allkeys = kwargs.get('allkeys', False)
@@ -96,7 +102,9 @@ def tracks_df(**kwargs):
             # track.recently_played() then each track_dict will
             # have an 'added_at' key
             try:
-                columns_dict['played_at'] = track_dict['played_at']
+                # Coerce played_at into np.datetime64. This is the standard
+                # dtype for pandas DataFrames cells with datetime objects
+                columns_dict['played_at'] = np.datetime64(track_dict['played_at'])
             except:
                 pass
             track_df = pd.DataFrame(columns_dict, index=[i])

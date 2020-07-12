@@ -107,8 +107,8 @@ def make_playlist_tracks_df(playlist_id='7Gr9kNeQNwapj3KYaAIhCu', allkeys=False,
     track_dfs = []
     for i, track_dict in enumerate(tracks_list):
         # Add some custom extracted fields. Sometimes 
-        track_dict['artist_name'] = get_track_artist_names(track_dict)[0]
-        track_dict['artist_id'] = get_track_artist_ids(track_dict)[0]
+        track_dict['artist_name'] = track.artist_names(track_dict)[0]
+        track_dict['artist_id'] = track.artist_ids(track_dict)[0]
         track_dict['release_date'] = track.release_date(track_dict)
         if allkeys:            
             for key in track_dict.keys():
