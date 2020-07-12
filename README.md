@@ -15,25 +15,32 @@ Before installing the package, you need to get credentials configured with spoti
 1.  Create a spotify app on the [spotify developer dashboard](https://developer.spotify.com/dashboard/applications).
 2. Get your client ID and client secret from the dashboard page
 3. set up a redirect URI in dashboard page > edit settings. I recommend using the one that's already in `spotify_jpc/constants_example.py`
-4. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look something like this:
+4. Change the name of `spotify_jpc/constants_example.py` to `spotify_jpc/constants.py` after adding the above information. Should look like this (minus `package_path` definition which doesn't need to be changed):
 
 ```python
 env_vars = {'SPOTIPY_CLIENT_ID': 'your-spotify-client-id',
             'SPOTIPY_CLIENT_SECRET': 'your-spotify-client-secret',
-            'SPOTIPY_REDIRECT_URI': 'http://localhost:9090',
+            'SPOTIPY_REDIRECT_URI': 'http://localhost:9090', 
             'DISPLAY': ':0'}
 
 scope_list = ['user-modify-playback-state',
               'user-read-recently-played',
+              'user-read-playback-state',
+              'playlist-read-private',
+              'playlist-read-collaborative',
               'user-read-currently-playing',
               'playlist-modify-private',
-              'playlist-modify-public']
-              
+              'playlist-modify-public',
+              'user-top-read',
+              'user-read-playback-position']
 scope = " ".join(scope_list)
 
-user_vars = {'username': 'your-username',
-             'playlist_db_path': r"C:\spotify_jpc\notebooks\playlist_db.csv",
-			 'cache_path': r"C:\.spotify\.usercache"}
+
+user_vars = {'username': 'anothergriningsoul',
+             'playlist_db_path': f'{package_path}playlists_db.csv',
+             'playlist_df_path': f'{package_path}playlists_df.csv',
+             'cache_path': f'{package_path}.usercache',
+             'track_history_path': f'{package_path}track_history_df.json'}
 ```
 
 Now that `constants.py` is properly configured, you can install `spotify_jpc` and then use .ahk shortcuts:
@@ -62,8 +69,29 @@ $ sudo apt-get install python3-tk
 
 Then in order to get the tkinter root object (`Tk`), you need to install [Ximing X server for Windows](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx) explained in this [tutorial](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx).
 
-## Future functionality
+## Raspberry pi tasks
 
-Need to make a function (`playlist.new_playlist`), which creates a playlist then adds it to `playlist.database()`. Then, if I only ever create new playlists with this function, I won't have to use `playlist.update_database(`) anymore.
+I use my raspberry pi to run `database.update_track_history()` every 5 minutes using cron:
 
-Update `playlist.add_track_to_playlist()` so that it always checks for duplicate track in the playlist and asks for confirmation if the track is already there.
+```sh
+# bash command to edit your sudo cron tasks
+sudo crontab -e
+# Add the following commands to the end of the file
+# First, update track history at reboot. Note that
+# You don't have to activate the venv if you just
+# interpret the python command with the python.exe
+# in that venv
+@reboot ~/venv/.spotify/bin/python -c "from spotify_jpc.database import updated_track_history; update_track_history()"
+# Then, update every five minutes
+*/5 * * * * ~/venv/.spotify/bin/python -c "from spotify_jpc.database import updated_track_history; update_track_history()"
+```
+
+This writes track history ` to `<spotify_installation_path>/track_history_df.json
+
+For now, I use `scp` to manually transfer the updated copy of `track_history_df.json` to the location of my main `spotify_jpc` branch in my WSL. Aliased in `~/.bashrc`:
+
+```sh
+alias udspd="scp ~/venv/.spotify/lib/python3.7/site-packages/spotify_jpc/track_history_df.json user@My-PC:~/projects/spotify_jpc/spotify_jpc"
+```
+
+I might do this with `cron` as well, but for now requires password.
