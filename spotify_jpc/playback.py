@@ -52,7 +52,7 @@ def pseudoskip(fraction=0.001):
     skipping the track, it makes it into recently
     played.
     """
-    sp = utilities.get_user_sp()
+    sp = get_user_sp()
     current_track = sp.current_playback()
     duration_ms = current_track['item']['duration_ms']
     target_ms = duration_ms - round(duration_ms*fraction)
