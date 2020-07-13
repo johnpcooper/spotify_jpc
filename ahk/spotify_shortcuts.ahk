@@ -49,3 +49,14 @@ return
   run, %comspec% /c %env% & python -c "%pycommand%"
 
 return
+
+; Skip to the last 0.1 percent of the currently playing track
+; so that we can skip it but still have it get recorden in
+; recently played.
+!\::
+
+  env = C:\.spotify\Scripts\activate
+  pycommand := "from spotify_jpc.playback import pseudoskip; pseudoskip()"
+  run, %comspec% /c %env% & python -c "%pycommand%"
+
+return
